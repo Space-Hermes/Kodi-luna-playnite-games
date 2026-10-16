@@ -18,16 +18,39 @@ class SessionTest(unittest.TestCase):
             self.assertIn('-viewonly', session.client_command(session.arguments(BASE)))
             command = session.client_command(session.arguments(BASE + ['--input', '/dev/input/event5']))
         self.assertNotIn('-viewonly', command)
-        self.assertEqual(command[-2:], ['-input', '/dev/input/event5'])
+        self.assertNotIn('-input', command)
         self.assertEqual(command[command.index('-mapping') + 1],
                          str(Path('/storage/playnite-bridge/bin/gamecontrollerdb.txt')))
         with patch('builtins.open', mock_open(read_data=config)):
             combined = session.client_command(session.arguments(
                 BASE + ['--input', '/dev/input/event5', '--input', '/dev/input/event4']))
-        self.assertEqual(combined[-4:], ['-input', '/dev/input/event5', '-input', '/dev/input/event4'])
+        self.assertNotIn('-input', combined)
+        self.assertNotIn('-viewonly', combined)
         with patch('builtins.open', mock_open(read_data=config + 'viewonly=true\n')):
             with self.assertRaisesRegex(RuntimeError, 'Disable viewonly'):
                 session.client_command(session.arguments(BASE + ['--input', '/dev/input/event5']))
+
+    def test_static_moonlight_input_config_cannot_disable_reconnects(self):
+        args = session.arguments(BASE + ['--input', '/dev/input/event5'])
+        with patch('builtins.open', mock_open(read_data='address=192.0.2.10\ninput=/dev/input/event5\n')):
+            with self.assertRaisesRegex(RuntimeError, 'Remove static input'):
+                session.client_command(args)
+
+    def test_resume_requires_exact_active_app_and_preserves_game(self):
+        args = session.arguments(BASE + ['--resume-app-id', '123'])
+        session.check_host_session('123', args)
+        for current in ('0', '124', None):
+            with self.assertRaises(RuntimeError):
+                session.check_host_session(current, args)
+        args.quit_app_after = True
+        with self.assertRaises(RuntimeError):
+            session.check_host_session('123', args)
+        for value in ('0', '-1'):
+            with self.assertRaises(RuntimeError):
+                session.check_host_session(value, session.arguments(BASE + ['--resume-app-id', value]))
+        with self.assertRaises(RuntimeError):
+            session.check_host_session('123', session.arguments(BASE))
+        session.check_host_session('0', session.arguments(BASE))
 
     def test_bundled_mappings_use_tested_hat_dpad(self):
         source = Path(__file__).with_name('gamecontrollerdb.example.txt').read_text()

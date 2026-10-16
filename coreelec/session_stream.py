@@ -37,9 +37,10 @@ def client_command(args):
     if args.input:
         if config.getboolean('Moonlight', 'viewonly', fallback=False):
             raise RuntimeError('Disable viewonly in config to forward controller input')
+        if config.get('Moonlight', 'input', fallback='').strip():
+            raise RuntimeError('Remove static input entries from Moonlight config to enable reconnects')
         command.extend(['-mapping', str(Path(args.bin).with_name('gamecontrollerdb.txt'))])
-        for device in args.input:
-            command.extend(['-input', device])
+        # Explicit Moonlight -input disables hotplug; retain args.input only for Kodi handoff.
     else:
         command.append('-viewonly')
     if args.quit_app_after:
@@ -47,6 +48,16 @@ def client_command(args):
     if args.hdr4k:
         command.extend(['-4k', '-fps', '60', '-codec', 'h265', '-hdr', '-bitrate', '40000'])
     return command
+
+
+def check_host_session(current_game, args):
+    if args.resume_app_id is not None:
+        if args.resume_app_id <= 0 or current_game != str(args.resume_app_id):
+            raise RuntimeError('The requested running Sunshine app is no longer active')
+        if args.quit_app_after:
+            raise RuntimeError('A resumed game must remain running on disconnect')
+    elif current_game != '0':
+        raise RuntimeError('Sunshine session already active')
 
 
 def handoff_inputs(devices, action):
@@ -126,8 +137,7 @@ def run(args):
             raise RuntimeError('Remove existing session.stop before starting')
         with urllib.request.urlopen('http://' + args.host + ':47989/serverinfo', timeout=4) as response:
             host = ET.fromstring(response.read())
-        if host.findtext('currentgame') != '0':
-            raise RuntimeError('Sunshine session already active')
+        check_host_session(host.findtext('currentgame'), args)
         pids = subprocess.check_output(['pidof', 'kodi.bin'], text=True, timeout=3).split()
         if len(pids) != 1:
             raise RuntimeError('Expected one Kodi process')
@@ -207,12 +217,13 @@ def arguments(argv=None):
     parser.add_argument('--bin', default='/storage/playnite-bridge/bin/moonlight')
     parser.add_argument('--config', required=True)
     parser.add_argument('--app', default='Playnite')
+    parser.add_argument('--resume-app-id', type=int, help='Resume only this already-running Sunshine app ID')
     parser.add_argument('--host', required=True)
     parser.add_argument('--audio', default='surround71:CARD=AMLAUGESOUND,DEV=0')
     parser.add_argument('--quit-app-after', action='store_true',
                         help='Ask Sunshine to close the PC app on disconnect')
     parser.add_argument('--4k-hdr', dest='hdr4k', action='store_true')
-    parser.add_argument('--input', action='append', help='Forward this Linux input device; repeat for multiple devices')
+    parser.add_argument('--input', action='append', help='Release this input from Kodi; enable Moonlight automatic input detection and reconnects')
     return parser.parse_args(argv)
 
 

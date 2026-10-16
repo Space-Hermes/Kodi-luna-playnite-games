@@ -20,6 +20,8 @@ Checked means a person tested that behaviour on the development Ugoos AM6B/CoreE
 - [ ] Full power-off cold boot.
 - [ ] USB wireless adapter gameplay, all buttons and vibration.
 - [ ] Full Bluetooth button-by-button and vibration acceptance test.
+- [x] Recovery of a dropped Bluetooth controller by reconnecting the stream without restarting Stellar Blade; picture and gameplay confirmed by the user.
+- [ ] Bluetooth disconnect/reconnect during an active stream after the hotplug fix.
 - [ ] Repeated reconnect, cold boot and consecutive-session reliability with forwarded inputs.
 - [ ] Remote Home key during streaming: not implemented as a return-to-Kodi shortcut.
 - [ ] 1440p fullscreen/HDR: prepared privately, not yet visually verified; not included as an automatic public-launcher change.
@@ -71,7 +73,9 @@ Use an SFTP client to copy files: connect to your CoreELEC hostname using the SS
 4. Start **Open Playnite**. Test D-pad, stick, A and B, then a familiar game.
 5. Exit normally and confirm Kodi responds again.
 
-The launcher discovers the current input event number by device name. Do not hard-code `/dev/input/event5`: it can change when devices reconnect. With no matching connected devices, the launcher falls back to view-only; pair/connect before launching.
+The launcher discovers the current input event number by device name for the Kodi handoff. Do not hard-code `/dev/input/event5`: it can change when devices reconnect. With no matching connected devices, the launcher falls back to view-only; pair/connect before launching.
+
+When forwarding is enabled, Moonlight automatically discovers local input devices and watches for reconnects. `input_device_names` selects which connected devices Kodi must release; it is not a Moonlight input allowlist. Other compatible local keyboards, mice and controllers may also be forwarded. Remove any static `input` entries from the Moonlight configuration: explicit device selection disables its automatic reconnect handling.
 
 ## Add the Ugoos remote for Playnite navigation
 
@@ -81,7 +85,7 @@ For the tested UR02 remote, use:
 "input_device_names": ["UR02", "Xbox Wireless Controller", "Xbox One Wireless Controller"]
 ```
 
-Test arrows, OK and Back in Playnite. Kodi can exclusively grab the remote even when paused. The supervisor temporarily removes the selected devices from Kodi's input discovery, forwards their events through Moonlight, then re-adds them during cleanup. This is why simply adding a Moonlight input argument was not sufficient.
+Test arrows, OK and Back in Playnite. Kodi can exclusively grab the remote even when paused. The supervisor temporarily removes the selected devices from Kodi's input discovery, lets Moonlight discover inputs automatically, then re-adds the selected devices during cleanup. This is why simply adding a Moonlight input argument was not sufficient.
 
 The remote's Home key is separate from this forwarding feature. In Kodi, use the Keymap Editor add-on to assign **Home** to the remote button if it currently does nothing. Do not overwrite your entire keymap with somebody else's file. Home is not currently a stream-exit button; exit Playnite through its menu.
 
@@ -135,3 +139,13 @@ On the tested Arctic Zephyr Mod skin, Xbox input did not reset the idle timer us
 4. During a movie, A opens the playback menu. Use the D-pad or left stick to navigate, A to select and B to close. Keep the skin's five-second auto-hide enabled.
 
 This overrides the default controller profile in these two Kodi windows, so other gamepads using that profile share the mapping. It does not change Ugoos remote keys or streamed-game controls. To undo it, remove this custom keymap and reload keymaps.
+
+## Controller connected, but the running game stops receiving input
+
+An earlier launcher passed fixed `-input` devices to Moonlight. After a Bluetooth disconnect, CoreELEC could recreate the controller while the existing Moonlight stream no longer read it. The current supervisor omits that static selection so Moonlight can detect arriving devices.
+
+Update `session_stream.py` in your installed backend directory after backing it up. The fix applies on the next stream launch and persists across reboot; replacing the file does not change an already-running process. Keep your configured paths and mapping database. A fresh Bluetooth dropout/reconnect during gameplay remains an acceptance check.
+
+For an already-running game, an operator can reconnect through `kodi_session.py` with the normal host/config/app/input arguments plus `--resume-app-id <current Sunshine numeric app ID>`. Use the same app name and the ID read from that host's `serverinfo`, not a Playnite GUID. End the old client stream normally first, confirm its cleanup and Kodi audio recovery completed, and do not quit the PC game or use `--quit-app-after`. The guard refuses a different/no active app; ordinary launches still refuse a busy host. Run through Kodi so its audio handoff and recovery remain active.
+
+During the verified recovery, the Windows desktop reverted to two monitors and the game appeared on the PC screen. Restoring the existing TV-only layout returned the game to the stream. Automatic Windows display restoration on stream reconnect is not implemented by this patch. Check the TV picture after reconnecting; this controller fix does not guarantee game-window placement.

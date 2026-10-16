@@ -9,3 +9,5 @@ The Kodi caller refuses active playback, releases HDMI audio, and launches a sup
 4K60 HDR is optional and defaults off in the example hook. It changes the HDMI mode and restores it on exit. Restoration settles the mode before restoring OSD planes. The private installation returned visibly to Kodi in supervised tests; the portable configuration layer still needs a fresh installation test. Do not assume the backend works on different hardware from passing unit tests.
 
 Run offline tests from this directory: `python -m unittest test_session test_display_restore`.
+
+Controller forwarding now uses Moonlight automatic input discovery so devices can reconnect. See the [controller recovery instructions](../CONTROLLERS.md#controller-connected-but-the-running-game-stops-receiving-input) for its broader input scope, the guarded `--resume-app-id` recovery path, and the remaining Windows display-reconnect limitation.
