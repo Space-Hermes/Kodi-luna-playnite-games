@@ -11,7 +11,7 @@ This project grew out of getting Luna/Moonlight working on CoreELEC. The code he
 - **Keep the library current:** exports covers and play statistics from Playnite. Optional SSH sync updates Kodi, and optional Windows registration adds/removes Sunshine applications.
 - **Restore your desktop:** temporarily uses only the TV display on the PC, then restores the previous monitor layout. A separate recovery process handles launcher failure.
 
-The desktop monitor goes blank during a session. The tested setup uses an Xbox controller connected **directly to the PC**. Kodi is paused during streaming, so the Kodi remote does not control Playnite.
+The desktop monitor goes blank during a session. Controllers can stay connected to the PC, or optionally connect to the CoreELEC box. Xbox Bluetooth gameplay and Ugoos UR02 remote navigation were exercised in the development setup. Bluetooth vibration does not work on its stock driver. See the [step-by-step controller guide](CONTROLLERS.md) before enabling forwarding.
 
 ## Is this for your setup?
 
@@ -22,12 +22,29 @@ This is an **experimental source release for technical users**, not a one-click 
 | Kodi client | Ugoos AM6B, CoreELEC Amlogic-ng 21.3 |
 | Gaming PC | Windows, Playnite 10.43, Sunshine 2025.924.154138 |
 | Stream | 3840 × 2160 at 60 fps, HEVC 10-bit HDR, eight-channel 48 kHz PCM |
-| Input | Xbox controller connected to the PC |
+| Input | PC-connected Xbox; CoreELEC-connected Xbox Bluetooth gameplay; Xbox USB wireless adapter menu navigation; UR02 remote navigation |
 | Games exercised | Stellar Blade; Ori and the Blind Forest |
 
 The client code uses Amlogic-specific display controls and a particular 7.1 HDMI audio device. Different boxes or audio configurations need adaptation. This client does **not** deliver 4K120. Our TV remained in Dolby Vision input mode for films; games use HDR10 at 4K60.
 
 The working private installation was tested on real equipment. The portable configuration layer in this repository has automated tests, but has **not yet been tested as a fresh installation**.
+
+### Verification checklist
+
+Checked items were physically verified on the development setup; unchecked items remain outstanding.
+
+- [x] Game cover launches directly on the TV; normal game exit returns to Kodi.
+- [x] Open Playnite browsing, normal exit and desktop restoration.
+- [x] Full-screen 4K60 HDR picture and HDMI audio.
+- [x] PC-connected Xbox gameplay and CoreELEC Bluetooth Xbox gameplay.
+- [x] UR02 remote navigation in Playnite; USB wireless adapter D-pad mapping correction.
+- [ ] Bluetooth vibration (not working with the tested stock driver).
+- [ ] USB wireless adapter gameplay and vibration.
+- [ ] Repeated reconnect/cold-boot reliability with forwarded controllers and remote.
+- [ ] 1440p fullscreen/HDR changes prepared privately; not included as an automatic public default.
+- [ ] Fresh installation of the portable package and other hardware/CoreELEC versions.
+
+The [controller guide](CONTROLLERS.md) separates these results in more detail and walks through setup and rollback.
 
 ## How the pieces fit together
 
@@ -122,6 +139,8 @@ Use a poster/cover layout. This repository does not overwrite your skin or home-
 
 ## First test and troubleshooting
 
+For controllers, remote navigation, missing vibration and input lag, follow [CONTROLLERS.md](CONTROLLERS.md). Start with the PC-connected option if you want the fewest setup steps.
+
 1. Close any existing Playnite instance on the PC. Stop Kodi playback.
 2. Open **Kodi Playnite Bridge → Open Playnite**. Check the TV picture, sound and controller.
 3. Exit Playnite normally. Confirm Kodi is visible and responsive and the desktop monitor returns.
@@ -133,6 +152,8 @@ Use a poster/cover layout. This repository does not overwrite your skin or home-
 | Empty widgets | Catalogue exists in the add-on userdata folder; export/sync completed |
 | New game will not launch | Its `PlayniteBridge-<ID>` application is loaded in Sunshine; a file update alone does not refresh Sunshine's in-memory list |
 | Game uses the wrong screen | TV identity and Sunshine capture target match; game-specific monitor preferences may interfere |
+| Controls feel delayed | Select the TV's Game picture mode for the streaming input; do not change the HDMI signal format just to do this. Then compare controller and network paths |
+| Game resolution is locked | Borderless mode often follows the Windows desktop. Try the game's fullscreen mode and select 2560 × 1440 there. Lowering stream resolution alone does not necessarily lower game rendering resolution |
 | No audio | The backend is calibrated for AMLAUGESOUND 7.1 PCM; check your actual device rather than assuming stereo is equivalent |
 | Frozen Kodi menu over the stream | Kodi's OSD plane may still be visible; never run manual visibility recovery during an active stream |
 | Black picture after exit | Inspect mode/OSD restoration; a successful process exit is not proof of visible HDMI output |

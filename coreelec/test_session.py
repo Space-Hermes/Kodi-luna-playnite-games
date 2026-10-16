@@ -12,6 +12,32 @@ import kodi_session
 BASE = ['--host', '192.0.2.10', '--config', '/example/moonlight.conf']
 
 class SessionTest(unittest.TestCase):
+    def test_controller_input_is_opt_in_and_rejects_viewonly_config(self):
+        config = 'address=192.0.2.10\n'
+        with patch('builtins.open', mock_open(read_data=config)):
+            self.assertIn('-viewonly', session.client_command(session.arguments(BASE)))
+            command = session.client_command(session.arguments(BASE + ['--input', '/dev/input/event5']))
+        self.assertNotIn('-viewonly', command)
+        self.assertEqual(command[-2:], ['-input', '/dev/input/event5'])
+        self.assertEqual(command[command.index('-mapping') + 1],
+                         str(Path('/storage/playnite-bridge/bin/gamecontrollerdb.txt')))
+        with patch('builtins.open', mock_open(read_data=config)):
+            combined = session.client_command(session.arguments(
+                BASE + ['--input', '/dev/input/event5', '--input', '/dev/input/event4']))
+        self.assertEqual(combined[-4:], ['-input', '/dev/input/event5', '-input', '/dev/input/event4'])
+        with patch('builtins.open', mock_open(read_data=config + 'viewonly=true\n')):
+            with self.assertRaisesRegex(RuntimeError, 'Disable viewonly'):
+                session.client_command(session.arguments(BASE + ['--input', '/dev/input/event5']))
+
+    def test_bundled_mappings_use_tested_hat_dpad(self):
+        source = Path(__file__).with_name('gamecontrollerdb.example.txt').read_text()
+        mappings = [line.split(',') for line in source.splitlines() if line and not line.startswith('#')]
+        self.assertEqual({row[0] for row in mappings},
+                         {'030000005e040000120b00000f050000', '050000005e040000130b000015050000'})
+        for row in mappings:
+            self.assertTrue({'dpup:h0.1', 'dpdown:h0.4', 'dpleft:h0.8', 'dpright:h0.2',
+                             'platform:Linux'}.issubset(set(row)))
+
     def test_sectionless_config_and_hdr_command(self):
         args = session.arguments(BASE + ['--4k-hdr'])
         with patch('builtins.open', mock_open(read_data='# Moonlight config\naddress = 192.0.2.10\n')):
@@ -119,12 +145,25 @@ class SessionTest(unittest.TestCase):
     @patch('session_stream.os.killpg', create=True)
     def test_pipe_eof_recovers_after_supervisor_death(self, killpg):
         state = {'supervisor_pid': 456, 'kodi_pid': 123,
-                 'saved': {'display': '0'}, 'root': '/fake'}
+                 'saved': {'display': '0'}, 'root': '/fake', 'input_devices': ['/dev/input/event5']}
         with patch.object(session, 'cleanup', return_value=[]) as cleanup, \
              patch.object(Path, 'write_text'):
             session.watchdog(state, io.BytesIO(b''))
         killpg.assert_called_once_with(456, signal.SIGKILL)
-        cleanup.assert_called_once_with({'display': '0'}, 123)
+        cleanup.assert_called_once_with({'display': '0'}, 123, ['/dev/input/event5'])
+
+    def test_cleanup_restores_input_after_display_failure(self):
+        with patch.object(session.display, 'remove_route'), \
+             patch.object(session.display, 'restore_display', return_value=['display failed']), \
+             patch.object(session, 'handoff_inputs') as handoff:
+            self.assertEqual(session.cleanup({}, 123, ['remote']), ['display failed'])
+        handoff.assert_called_once_with(['remote'], 'add')
+
+    def test_handoff_rejects_non_evdev_path_before_any_action(self):
+        with patch.object(session.subprocess, 'run') as run:
+            with self.assertRaises(ValueError):
+                session.handoff_inputs(['/tmp/not-input'], 'remove')
+        run.assert_not_called()
 
     @patch('session_stream.os.killpg', create=True)
     def test_success_message_disarms_watchdog(self, killpg):

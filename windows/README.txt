@@ -1,7 +1,8 @@
 Kodi Playnite Bridge - Windows source component
 
 Requires Windows PowerShell 5.1, Playnite 10 scripting, Sunshine, and the paired
-CoreELEC client component. Keep the controller connected to the PC. This source
+CoreELEC client component. Start with the controller connected to the PC; optional
+CoreELEC controller forwarding is covered in ../CONTROLLERS.md. This source
 package contains no Moonlight executable, pairing credentials or game library.
 
 1. Copy playnite/ runtime files (extension.yaml, PlayniteBridgeCatalogue.psm1 and

@@ -3,5 +3,6 @@
   "moonlight_config": "/storage/playnite-bridge/moonlight.conf",
   "coreelec_directory": "/storage/playnite-bridge",
   "moonlight_binary": "/storage/playnite-bridge/bin/moonlight",
-  "hdr4k": false
+  "hdr4k": false,
+  "input_device_names": []
 }

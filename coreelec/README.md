@@ -1,6 +1,6 @@
 # CoreELEC NG backend
 
-Experimental, hardware-specific backend derived from an Amlogic Ugoos/CoreELEC NG setup. It uses Amlogic sysfs display planes, `decoder amvideo`, and the AMLAUGESOUND 7.1 HDMI device (`pcm3p`). It is not a generic Kodi/Linux launcher. The controller is connected directly to the PC; Moonlight runs with `-viewonly`.
+Experimental, hardware-specific backend derived from an Amlogic Ugoos/CoreELEC NG setup. It uses Amlogic sysfs display planes, `decoder amvideo`, and the AMLAUGESOUND 7.1 HDMI device (`pcm3p`). It is not a generic Kodi/Linux launcher. By default the controller connects to the PC and Moonlight runs with `-viewonly`. Optional CoreELEC input forwarding is described in the [controller guide](../CONTROLLERS.md), including its tested limits and recovery steps.
 
 Supply your own compatible Moonlight Embedded binary and libraries, pair it with Sunshine, and create its configuration containing `address = YOUR_PC_ADDRESS`. No binaries, pairing keys or game catalogue are included. Place these Python modules together in `/storage/playnite-bridge`, or the explicit directory in the Kodi hook configuration. The host and Moonlight config arguments are required.
 

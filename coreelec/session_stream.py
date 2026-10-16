@@ -8,6 +8,7 @@ import configparser
 import json
 import os
 from pathlib import Path
+import re
 import signal
 import subprocess
 import sys
@@ -32,7 +33,15 @@ def client_command(args):
     if not args.quit_app_after and config.getboolean('Moonlight', 'quitappafter', fallback=False):
         raise RuntimeError('Disable quitappafter in config or explicitly use --quit-app-after')
     command = [args.bin, 'stream', '-config', args.config, '-app', args.app,
-               '-audio', args.audio, '-surround', '7.1', '-viewonly']
+               '-audio', args.audio, '-surround', '7.1']
+    if args.input:
+        if config.getboolean('Moonlight', 'viewonly', fallback=False):
+            raise RuntimeError('Disable viewonly in config to forward controller input')
+        command.extend(['-mapping', str(Path(args.bin).with_name('gamecontrollerdb.txt'))])
+        for device in args.input:
+            command.extend(['-input', device])
+    else:
+        command.append('-viewonly')
     if args.quit_app_after:
         command.append('-quitappafter')
     if args.hdr4k:
@@ -40,13 +49,29 @@ def client_command(args):
     return command
 
 
-def cleanup(saved, kodi_pid):
+def handoff_inputs(devices, action):
+    paths = []
+    for device in devices:
+        path = Path(device).resolve()
+        if not re.fullmatch(r'/dev/input/event[0-9]+', str(path)):
+            raise ValueError('Expected an evdev input device')
+        paths.append('/sys/class/input/' + path.name)
+    for path in paths:
+        subprocess.run(['udevadm', 'trigger', '--action=' + action, path],
+                       check=True, timeout=5)
+
+
+def cleanup(saved, kodi_pid, devices=()):
     errors = []
     try:
         display.remove_route()
     except Exception as error:
         errors.append(str(error))
     errors.extend(display.restore_display(saved, kodi_pid))
+    try:
+        handoff_inputs(devices, 'add')
+    except Exception as error:
+        errors.append(str(error))
     return errors
 
 
@@ -61,7 +86,7 @@ def watchdog(state, pipe):
         pass
     except OSError as error:
         errors.append(str(error))
-    errors.extend(cleanup(state['saved'], state['kodi_pid']))
+    errors.extend(cleanup(state['saved'], state['kodi_pid'], state.get('input_devices', [])))
     Path(state['root'], 'session-watchdog.json').write_text(
         json.dumps({'cleanup_errors': errors}))
 
@@ -114,13 +139,17 @@ def run(args):
                 saved[name] = Path(name).read_text().strip()
         pid = int(pids[0])
         state = {'supervisor_pid': os.getpid(), 'kodi_pid': pid,
-                 'saved': saved, 'root': str(root)}
+                 'saved': saved, 'root': str(root), 'input_devices': args.input or []}
         guard = subprocess.Popen([sys.executable, __file__, '--watchdog', json.dumps(state)],
                                  stdin=subprocess.PIPE, start_new_session=True,
                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                                  close_fds=True)
         if stopping.wait(0.2) or guard.poll() is not None:
             raise RuntimeError('Session cancelled or recovery watchdog failed to start')
+        # Kodi grabs keyboards exclusively; let it close them before suspension.
+        handoff_inputs(args.input or [], 'remove')
+        if args.input:
+            time.sleep(1)
         os.kill(pid, signal.SIGSTOP)
         display.wait_stopped(pid)
         display.VFM.write_text('add ' + display.ROUTE + ' decoder amvideo\n')
@@ -153,7 +182,7 @@ def run(args):
             except (OSError, subprocess.TimeoutExpired) as error:
                 errors.append(str(error))
         if guard is not None:
-            errors.extend(cleanup(saved, pid))
+            errors.extend(cleanup(saved, pid, args.input or []))
             result['cleanup_errors'] = errors
             (root / 'session-result.json').write_text(json.dumps(result, indent=2))
             try:
@@ -183,6 +212,7 @@ def arguments(argv=None):
     parser.add_argument('--quit-app-after', action='store_true',
                         help='Ask Sunshine to close the PC app on disconnect')
     parser.add_argument('--4k-hdr', dest='hdr4k', action='store_true')
+    parser.add_argument('--input', action='append', help='Forward this Linux input device; repeat for multiple devices')
     return parser.parse_args(argv)
 
 
