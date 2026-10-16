@@ -16,7 +16,8 @@ Checked means a person tested that behaviour on the development Ugoos AM6B/CoreE
 - [x] Actual in-game Bluetooth vibration in Stellar Blade; strength felt weak, with no direct-PC comparison yet.
 - [x] Kodi navigation with the new driver and playback-menu access with five-second auto-hide.
 - [x] Software reboot: Kodi started and xpadneo 0.9.7 loaded automatically.
-- [ ] Xbox reconnect/navigation after reboot and full power-off cold boot.
+- [x] Xbox reconnect and Kodi D-pad/A/B navigation after reboot, confirmed by the user.
+- [ ] Full power-off cold boot.
 - [ ] USB wireless adapter gameplay, all buttons and vibration.
 - [ ] Full Bluetooth button-by-button and vibration acceptance test.
 - [ ] Repeated reconnect, cold boot and consecutive-session reliability with forwarded inputs.

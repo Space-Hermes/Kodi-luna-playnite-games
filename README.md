@@ -42,7 +42,8 @@ Checked items were physically verified on the development setup; unchecked items
 - [x] Actual in-game Bluetooth vibration (Stellar Blade; strength comparison remains open).
 - [x] Xbox Kodi navigation and playback menu with five-second auto-hide.
 - [x] Software reboot: Kodi started and xpadneo 0.9.7 loaded automatically.
-- [ ] Xbox reconnect/navigation after reboot and full power-off cold boot.
+- [x] Xbox reconnect and Kodi D-pad/A/B navigation after reboot, confirmed by the user.
+- [ ] Full power-off cold boot.
 - [ ] USB wireless adapter gameplay and vibration.
 - [ ] Repeated reconnect/cold-boot reliability with forwarded controllers and remote.
 - [ ] 1440p fullscreen/HDR changes prepared privately; not included as an automatic public default.
