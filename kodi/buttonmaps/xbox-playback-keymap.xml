@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<keymap>
+  <FullscreenVideo>
+    <joystick profile="game.controller.default">
+      <a>RunScript(/storage/playnite-bridge/xbox_kodi_action.py,osd)</a>
+    </joystick>
+  </FullscreenVideo>
+  <VideoOSD>
+    <joystick profile="game.controller.default">
+      <a>RunScript(/storage/playnite-bridge/xbox_kodi_action.py,select)</a>
+      <b>RunScript(/storage/playnite-bridge/xbox_kodi_action.py,close)</b>
+      <up>RunScript(/storage/playnite-bridge/xbox_kodi_action.py,up)</up>
+      <down>RunScript(/storage/playnite-bridge/xbox_kodi_action.py,down)</down>
+      <left>RunScript(/storage/playnite-bridge/xbox_kodi_action.py,left)</left>
+      <right>RunScript(/storage/playnite-bridge/xbox_kodi_action.py,right)</right>
+      <leftstick direction="up">RunScript(/storage/playnite-bridge/xbox_kodi_action.py,up)</leftstick>
+      <leftstick direction="down">RunScript(/storage/playnite-bridge/xbox_kodi_action.py,down)</leftstick>
+      <leftstick direction="left">RunScript(/storage/playnite-bridge/xbox_kodi_action.py,left)</leftstick>
+      <leftstick direction="right">RunScript(/storage/playnite-bridge/xbox_kodi_action.py,right)</leftstick>
+    </joystick>
+  </VideoOSD>
+</keymap>

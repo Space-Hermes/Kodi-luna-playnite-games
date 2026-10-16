@@ -39,7 +39,10 @@ Checked items were physically verified on the development setup; unchecked items
 - [x] PC-connected Xbox gameplay and CoreELEC Bluetooth Xbox gameplay.
 - [x] UR02 remote navigation in Playnite; USB wireless adapter D-pad mapping correction.
 - [x] Bluetooth vibration test pulses through Sunshine/Moonlight with a kernel-matched xpadneo 0.9.7 driver.
-- [ ] Actual in-game vibration and cold boot with the new driver.
+- [x] Actual in-game Bluetooth vibration (Stellar Blade; strength comparison remains open).
+- [x] Xbox Kodi navigation and playback menu with five-second auto-hide.
+- [x] Software reboot: Kodi started and xpadneo 0.9.7 loaded automatically.
+- [ ] Xbox reconnect/navigation after reboot and full power-off cold boot.
 - [ ] USB wireless adapter gameplay and vibration.
 - [ ] Repeated reconnect/cold-boot reliability with forwarded controllers and remote.
 - [ ] 1440p fullscreen/HDR changes prepared privately; not included as an automatic public default.
