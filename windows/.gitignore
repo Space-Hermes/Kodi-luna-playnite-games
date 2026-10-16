@@ -1,0 +1,11 @@
+**/test-output-*/
+**/catalogue/
+**/settings.json
+**/sync-config.json
+**/sync-snapshot-*/
+**/sync.lock
+**/sync-status.txt
+**/session-marker.json
+**/playnitebridge-display*
+**/registration-enabled
+registration.json

@@ -1,0 +1,6 @@
+Id: PlayniteBridge_Catalogue_9bb7985e-1d40-45b9-b079-4b8c52c76fc8
+Name: Kodi Playnite Bridge Catalogue
+Author: PlayniteBridge
+Version: 0.1.0
+Module: PlayniteBridgeCatalogue.psm1
+Type: Script

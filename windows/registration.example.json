@@ -1,0 +1,6 @@
+{
+  "apps_path": "C:\\Program Files\\Sunshine\\config\\apps.json",
+  "catalogue_path": "C:\\YOUR-PLAYNITE-FOLDER\\Extensions\\PlayniteBridge_Catalogue_9bb7985e-1d40-45b9-b079-4b8c52c76fc8\\catalogue\\catalogue.json",
+  "wrapper_path": "C:\\YOUR-SOURCE-FOLDER\\windows\\host\\Start-PlayniteBridgeGame.ps1",
+  "settings_path": "C:\\YOUR-SOURCE-FOLDER\\windows\\host\\settings.json"
+}

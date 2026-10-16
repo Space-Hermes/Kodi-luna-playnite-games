@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<addon id="plugin.program.playnitebridge" name="Kodi Playnite Bridge" version="0.1.0" provider-name="PlayniteBridge">
+  <requires><import addon="xbmc.python" version="3.0.0" /></requires>
+  <extension point="xbmc.python.pluginsource" library="addon.py"><provides>executable</provides></extension>
+  <extension point="xbmc.addon.metadata"><summary lang="en_GB">Your cached Playnite library</summary><description lang="en_GB">Launch games directly from your Playnite widgets, or open the full library on your TV.</description><platform>all</platform><license>GPL-3.0-or-later</license></extension>
+</addon>
