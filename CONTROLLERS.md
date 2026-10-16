@@ -11,7 +11,9 @@ Checked means a person tested that behaviour on the development Ugoos AM6B/CoreE
 - [x] Xbox wireless USB adapter on CoreELEC with a locally built xow driver: stick, A/B and corrected D-pad navigation in Playnite.
 - [x] Ugoos UR02 remote: navigation in Playnite after releasing Kodi's input grab.
 - [x] TV Game picture mode: user reported substantially improved responsiveness.
-- [ ] Bluetooth vibration: **not working with the tested stock generic driver**.
+- [x] Bluetooth vibration: three physical pulses confirmed from Windows through Sunshine and Moonlight with a kernel-matched xpadneo 0.9.7 build.
+- [x] Controller power-cycle: the new driver bound automatically and vibrated on connection.
+- [ ] Actual in-game vibration and cold boot with the new driver.
 - [ ] USB wireless adapter gameplay, all buttons and vibration.
 - [ ] Full Bluetooth button-by-button and vibration acceptance test.
 - [ ] Repeated reconnect, cold boot and consecutive-session reliability with forwarded inputs.
@@ -96,11 +98,24 @@ Non-expert users should start with Option A or B rather than trying to build a k
 
 The xpadneo project documents a [Bluetooth LE timing workaround](https://github.com/atar-axis/xpadneo/blob/master/docs/TROUBLESHOOTING.md). We tested a temporary 10 ms connection interval, but have **not isolated a measurable benefit**. It is not installed automatically or presented as a proven lag fix.
 
-## Why there is no Bluetooth vibration yet
+## Bluetooth vibration: tested fix and limits
 
 The tested CoreELEC 4.9 kernel bound the controller to a generic driver with no force-feedback capability. Its bundled xpadneo 0.6 did not support this controller's newer Bluetooth identity. Moonlight forwarding cannot supply a capability missing from the device driver.
 
-Newer xpadneo versions support this controller, but current versions require a newer kernel. Do not install a random kernel module: it must match your exact CoreELEC build. A compatible driver build and a physical vibration test remain outstanding. See [xpadneo](https://github.com/atar-axis/xpadneo) for its current requirements.
+We built [xpadneo v0.9.7](https://github.com/atar-axis/xpadneo/tree/v0.9.7) for CoreELEC Amlogic-ng 21.3 avdvplus R9, kernel `4.9.269`. It passed the kernel compatibility checks without force-loading. The user confirmed a Linux force-feedback pulse and three pulses sent from Windows through Sunshine and Moonlight. Reconnecting selected the new driver automatically. Its startup service is enabled; a cold boot and actual game-generated effects remain untested.
+
+The portable bridge does **not** install or bundle this kernel module. It must be built for your exact CoreELEC kernel; matching the version number alone is insufficient. Newer xpadneo releases are not a drop-in replacement for this old kernel.
+
+With a compatible driver installed:
+
+1. Turn the Xbox off and on. The tested driver vibrates briefly when it connects.
+2. Open Playnite from Kodi and start a game with vibration enabled in its settings.
+3. Test vibration, D-pad, sticks, A/B, shoulders and triggers, then exit normally.
+4. Repeat after a reboot when nobody is watching Kodi.
+
+The new driver reports **12 buttons and 9 axes**. For that exact layout, use `kodi/buttonmaps/Xbox_Wireless_Controller_12b_9a.xml` in the same Kodi buttonmap directory described above. The 15-button/8-axis profile is for the stock generic driver. Full physical navigation acceptance with the new profile remains unchecked. Moonlight's existing mapping for GUID `050000005e0400008e02000030110000` matches the new driver's standard Xbox layout.
+
+Our local installation uses a startup service and the upstream reconnect rule. Keep the old configuration available for rollback; do not restart drivers or reboot during somebody else's playback.
 
 ## Undo the forwarding changes
 

@@ -11,7 +11,7 @@ This project grew out of getting Luna/Moonlight working on CoreELEC. The code he
 - **Keep the library current:** exports covers and play statistics from Playnite. Optional SSH sync updates Kodi, and optional Windows registration adds/removes Sunshine applications.
 - **Restore your desktop:** temporarily uses only the TV display on the PC, then restores the previous monitor layout. A separate recovery process handles launcher failure.
 
-The desktop monitor goes blank during a session. Controllers can stay connected to the PC, or optionally connect to the CoreELEC box. Xbox Bluetooth gameplay and Ugoos UR02 remote navigation were exercised in the development setup. Bluetooth vibration does not work on its stock driver. See the [step-by-step controller guide](CONTROLLERS.md) before enabling forwarding.
+The desktop monitor goes blank during a session. Controllers can stay connected to the PC, or optionally connect to the CoreELEC box. Xbox Bluetooth gameplay and Ugoos UR02 remote navigation were exercised in the development setup. Bluetooth vibration was confirmed through Sunshine/Moonlight with a kernel-matched xpadneo driver. The portable package does not install that driver. See the [step-by-step controller guide](CONTROLLERS.md) before enabling forwarding.
 
 ## Is this for your setup?
 
@@ -38,7 +38,8 @@ Checked items were physically verified on the development setup; unchecked items
 - [x] Full-screen 4K60 HDR picture and HDMI audio.
 - [x] PC-connected Xbox gameplay and CoreELEC Bluetooth Xbox gameplay.
 - [x] UR02 remote navigation in Playnite; USB wireless adapter D-pad mapping correction.
-- [ ] Bluetooth vibration (not working with the tested stock driver).
+- [x] Bluetooth vibration test pulses through Sunshine/Moonlight with a kernel-matched xpadneo 0.9.7 driver.
+- [ ] Actual in-game vibration and cold boot with the new driver.
 - [ ] USB wireless adapter gameplay and vibration.
 - [ ] Repeated reconnect/cold-boot reliability with forwarded controllers and remote.
 - [ ] 1440p fullscreen/HDR changes prepared privately; not included as an automatic public default.
