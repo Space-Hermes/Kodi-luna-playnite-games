@@ -10,11 +10,13 @@ import os
 from pathlib import Path
 import re
 import signal
+import ssl
 import subprocess
 import sys
 import threading
 import time
 import urllib.request
+import urllib.parse
 import xml.etree.ElementTree as ET
 
 import display
@@ -58,6 +60,23 @@ def check_host_session(current_game, args):
             raise RuntimeError('A resumed game must remain running on disconnect')
     elif current_game != '0':
         raise RuntimeError('Sunshine session already active')
+
+
+def resume_selected_app(current_game, args):
+    if current_game == '0' or args.resume_app_id is not None:
+        return
+    pairing = Path.home() / '.cache/moonlight'
+    context = ssl._create_unverified_context()  # Sunshine uses its paired, self-signed certificate.
+    context.load_cert_chain(str(pairing / 'client.pem'), str(pairing / 'key.pem'))
+    query = urllib.parse.urlencode({'uniqueid': (pairing / 'uniqueid.dat').read_text().strip()})
+    with urllib.request.urlopen('https://' + args.host + ':47984/applist?' + query,
+                                context=context, timeout=4) as response:
+        apps = ET.fromstring(response.read())
+    selected = [app.findtext('ID') for app in apps.findall('App')
+                if app.findtext('AppTitle') == args.app]
+    if selected != [current_game]:
+        raise RuntimeError('Another Sunshine game is active; return to it or close it before switching games')
+    args.resume_app_id = int(current_game)
 
 
 def handoff_inputs(devices, action):
@@ -137,6 +156,7 @@ def run(args):
             raise RuntimeError('Remove existing session.stop before starting')
         with urllib.request.urlopen('http://' + args.host + ':47989/serverinfo', timeout=4) as response:
             host = ET.fromstring(response.read())
+        resume_selected_app(host.findtext('currentgame'), args)
         check_host_session(host.findtext('currentgame'), args)
         pids = subprocess.check_output(['pidof', 'kodi.bin'], text=True, timeout=3).split()
         if len(pids) != 1:

@@ -1,5 +1,7 @@
 # Kodi Playnite Bridge
 
+For the separate Kodi video interface experiment, see [SpaceTV YouTube](https://github.com/Space-Hermes/Kodi-YouTube-TV).
+
 **Your PC game library, on your CoreELEC home screen.** Browse covers, launch a game on the TV, and return to Kodi when you quit. Recently played, Most played, Favourites and Installed rows come from your Playnite library.
 
 This project grew out of getting Luna/Moonlight working on CoreELEC. The code here is a separate Kodi add-on, Playnite extension and launcher, not a fork of Luna. You do not need Luna itself, but you do need a compatible Moonlight Embedded client.
@@ -168,6 +170,16 @@ For technical recovery, the backend watches `/storage/playnite-bridge/session.st
 Diagnostics include `session-result.json` and `kodi-session-result.json` on CoreELEC, Playnite's log, the extension's `sync-status.txt`, and the optional registration task's `apps-update-status.json`. Keep these and all local settings out of public bug reports unless you have removed identifying data.
 
 ## Existing installations
+
+### October 2026 resume and focus update
+
+Selecting the same game after a stream disconnect now resumes its existing Sunshine session. The launcher checks the selected application's name and numeric ID against Sunshine's paired application list. It still refuses a different active game and never automatically quits it. This uses Moonlight's standard `~/.cache/moonlight` pairing files; custom certificate-directory configurations need adaptation. TLS uses Sunshine's self-signed-certificate convention, so use a trusted local network.
+
+Copy the updated `coreelec/session_stream.py` into your configured backend directory while no stream is active. For the window-focus change, copy both `windows/playnite/PlayniteBridgeCatalogue.psm1` and `windows/playnite/Restore-GameWindow.ps1` into your extension directory; restart Playnite after finishing the current game. Only Playnite sessions owned by this bridge launch the bounded focus helper. Ordinary desktop Playnite use is unchanged. Some game launchers do not expose a usable process ID, so automatic focus is best effort.
+
+The underlying private installation resumed Stellar Blade successfully and the user confirmed picture and controller. Automated tests cover exact-app matching, refusing another game, helper scope and session ownership. Fresh-install testing of this portable update and a fresh game launch with the focus hook remain outstanding.
+
+**Kodi deliberately stops responding during a stream:** the supervisor suspends it with SIGSTOP while Moonlight owns the display and input. Inspect the streaming processes before treating an RPC timeout as a freeze. Do not restart Kodi during an active game stream.
 
 The renamed package uses new add-on IDs, paths, extension names and Sunshine application prefixes. It is not an in-place upgrade of the initial release. Existing installations continue working without this update. To migrate, back up your settings and Sunshine apps, disable the old exporter and registration task, then install all renamed components together and reselect the new widget paths. Do not run both registration tasks or mix an old launch hook with new Sunshine entries. Keep the old installation until the replacement passes the first-test checks; remove obsolete Sunshine entries only after that.
 

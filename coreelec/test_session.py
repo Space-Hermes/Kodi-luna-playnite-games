@@ -12,6 +12,21 @@ import kodi_session
 BASE = ['--host', '192.0.2.10', '--config', '/example/moonlight.conf']
 
 class SessionTest(unittest.TestCase):
+    def test_automatic_resume_only_matches_selected_game(self):
+        args = session.arguments(BASE + ['--app', 'PlayniteBridge-selected'])
+        response = Mock()
+        response.__enter__ = Mock(return_value=response)
+        response.__exit__ = Mock(return_value=False)
+        response.read.return_value = b'<root><App><ID>123</ID><AppTitle>PlayniteBridge-selected</AppTitle></App></root>'
+        with patch.object(session.ssl, '_create_unverified_context'), patch.object(Path, 'read_text', return_value='paired'), patch.object(session.urllib.request, 'urlopen', return_value=response) as request:
+            session.resume_selected_app('0', args)
+            request.assert_not_called()
+            with self.assertRaisesRegex(RuntimeError, 'Another Sunshine game'):
+                session.resume_selected_app('124', args)
+            session.resume_selected_app('123', args)
+            self.assertEqual(args.resume_app_id, 123)
+            session.check_host_session('123', args)
+
     def test_controller_input_is_opt_in_and_rejects_viewonly_config(self):
         config = 'address=192.0.2.10\n'
         with patch('builtins.open', mock_open(read_data=config)):

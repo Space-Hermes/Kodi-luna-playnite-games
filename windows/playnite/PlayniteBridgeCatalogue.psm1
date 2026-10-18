@@ -139,6 +139,15 @@ function Request-PlayniteBridgeShutdown($Api) {
     $null = $Api.MainView.UIDispatcher.BeginInvoke($action)
 }
 
+function OnGameStarted {
+    param($eventArgs)
+    if (!(Test-PlayniteBridgeProcessMarker) -or $eventArgs.StartedProcessId -le 0) { return }
+    $worker = Join-Path $PSScriptRoot 'Restore-GameWindow.ps1'
+    Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe') -WindowStyle Hidden -ArgumentList @(
+        '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', ('"' + $worker + '"'),
+        '-GameProcessId', ([int]$eventArgs.StartedProcessId).ToString()) | Out-Null
+}
+
 function OnGameStopped {
     param($eventArgs)
     Update-PlayniteBridgeCatalogue
@@ -155,5 +164,5 @@ function GetMainMenuItems {
 }
 
 # Playnite invokes exported CommandInfo objects; their helper calls must also resolve in its runspace.
-Export-ModuleMember -Function Export-PlayniteBridgeCatalogue, Update-PlayniteBridgeCatalogue, OnApplicationStarted, OnLibraryUpdated, OnGameInstalled, OnGameUninstalled, OnGameStopped, GetMainMenuItems, Test-PlayniteBridgeProcessMarker, Start-IndependentPlayniteBridgeSync, Complete-PlayniteBridgeSession, Request-PlayniteBridgeShutdown, Request-PlayniteBridgeRegistration
+Export-ModuleMember -Function Export-PlayniteBridgeCatalogue, Update-PlayniteBridgeCatalogue, OnApplicationStarted, OnLibraryUpdated, OnGameInstalled, OnGameUninstalled, OnGameStarted, OnGameStopped, GetMainMenuItems, Test-PlayniteBridgeProcessMarker, Start-IndependentPlayniteBridgeSync, Complete-PlayniteBridgeSession, Request-PlayniteBridgeShutdown, Request-PlayniteBridgeRegistration
 

@@ -42,5 +42,20 @@ $module = Import-Module (Join-Path $PSScriptRoot 'PlayniteBridgeCatalogue.psm1')
     function Complete-PlayniteBridgeSession($EventArgs) { $script:order += 'shutdown' }
     OnGameStopped $event
     Assert (($script:order -join ',') -eq 'export-sync,shutdown') 'Export/sync must precede shutdown'
+    $script:owned = $false
+    $script:focusLaunches = @()
+    function Test-PlayniteBridgeProcessMarker { return $script:owned }
+    function Start-Process($FilePath, $WindowStyle, $ArgumentList) {
+        Assert ($WindowStyle -eq 'Hidden') 'Focus helper must not show a console'
+        $script:focusLaunches += ,$ArgumentList
+    }
+    $started = [pscustomobject]@{StartedProcessId=123}
+    OnGameStarted $started
+    Assert ($script:focusLaunches.Count -eq 0) 'Normal desktop Playnite must not steal focus'
+    $script:owned = $true
+    OnGameStarted ([pscustomobject]@{StartedProcessId=0})
+    Assert ($script:focusLaunches.Count -eq 0) 'Invalid process must not start focus helper'
+    OnGameStarted $started
+    Assert ($script:focusLaunches.Count -eq 1 -and $script:focusLaunches[0][-1] -eq '123') 'Owned game launch must restore its exact process'
 }
 Write-Output 'PASS: session identity guards, other-game protection, export-before-exit ordering'
